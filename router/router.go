@@ -13,6 +13,8 @@ func Route() *chi.Mux {
 	r.Route("/inventory", func(r chi.Router) {
 		r.Get("/weapons", handler.GetAllWeapon)
 		r.Get("/armor", handler.GetAllArmor)
+		r.Post("/weapons", handler.CreateWeapon)
+		r.Post("/armor", handler.CreateArmor)
 		// r.Post("/", handler.CreateUser)
 		// r.Get("/{id}", handler.GetUserById)
 		// r.Get("/limit/{limit}", handler.GetTopUsersByLimit)
