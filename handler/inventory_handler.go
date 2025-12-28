@@ -5,8 +5,8 @@ import (
 	"inventory/modules"
 	"inventory/service"
 	"net/http"
-	// "strconv"
-	// "github.com/go-chi/chi/v5"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func GetAllWeapon(w http.ResponseWriter, r *http.Request) {
@@ -21,6 +21,28 @@ func GetAllWeapon(w http.ResponseWriter, r *http.Request) {
 
 func GetAllArmor(w http.ResponseWriter, r *http.Request) {
 	result, err := service.GetAllWeapon()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set(defaultContentTypeHeader, defaultApplicationTypeHeader)
+	json.NewEncoder(w).Encode(result)
+}
+
+func GetAllWeaponByRarity(w http.ResponseWriter, r *http.Request) {
+	rarity := chi.URLParam(r, rarityRoute)
+	result, err := service.GetAllWeaponByRarity(rarity)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set(defaultContentTypeHeader, defaultApplicationTypeHeader)
+	json.NewEncoder(w).Encode(result)
+}
+
+func GetAllArmorByRarity(w http.ResponseWriter, r *http.Request) {
+	rarity := chi.URLParam(r, rarityRoute)
+	result, err := service.GetAllArmorByRarity(rarity)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -47,6 +69,7 @@ func CreateArmor(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(newArmor)
 
 }
+
 func CreateWeapon(w http.ResponseWriter, r *http.Request) {
 	var newWeapon modules.Weapon
 	if err := json.NewDecoder(r.Body).Decode(&newWeapon); err != nil {
@@ -69,4 +92,6 @@ func CreateWeapon(w http.ResponseWriter, r *http.Request) {
 const (
 	defaultContentTypeHeader     = "Content-Type"
 	defaultApplicationTypeHeader = "application/json"
+
+	rarityRoute = "rarity"
 )

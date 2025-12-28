@@ -18,6 +18,18 @@ func GetAllWeapon() ([]modules.Weapon, error) {
 	return weapons, result.Error
 }
 
+func GetAllWeaponByRarity(rarity string) ([]modules.Weapon, error) {
+	db := database.GetDB()
+	if db == nil {
+		return nil, nil
+	}
+	var weapons []modules.Weapon
+
+	result := db.Where("rarity = ?", rarity).Find(&weapons)
+	log.Println("AllWeapon -", len(weapons), " by rarity ", rarity)
+	return weapons, result.Error
+}
+
 func CreateWeapon(weapon *modules.Weapon) error {
 	db := database.GetDB()
 	if db == nil {

@@ -10,16 +10,27 @@ func Route() *chi.Mux {
 
 	r := chi.NewRouter()
 
-	r.Route("/inventory", func(r chi.Router) {
-		r.Get("/weapons", handler.GetAllWeapon)
-		r.Get("/armor", handler.GetAllArmor)
-		r.Post("/weapons", handler.CreateWeapon)
-		r.Post("/armor", handler.CreateArmor)
-		// r.Post("/", handler.CreateUser)
-		// r.Get("/{id}", handler.GetUserById)
-		// r.Get("/limit/{limit}", handler.GetTopUsersByLimit)
-		// // r.Put("/{id}", handler.UpdateClient)
-		// // r.Delete("/{id}", handler.DeleteClient)
+	r.Route(inventoryRoute, func(r chi.Router) {
+		r.Get(getAllWeapon, handler.GetAllWeapon)
+		r.Get(getAllArmor, handler.GetAllArmor)
+		r.Get(getAllWeaponByRarity, handler.GetAllWeaponByRarity)
+		r.Get(getAllArmorByRarity, handler.GetAllArmorByRarity)
+
+		r.Post(postWeapon, handler.CreateWeapon)
+		r.Post(postArmor, handler.CreateArmor)
+
 	})
 	return r
 }
+
+const (
+	inventoryRoute = "/inventory"
+	getAllWeapon   = "/weapons"
+	getAllArmor    = "/armors"
+
+	getAllWeaponByRarity = "/weapons/rarity/{rarity}"
+	getAllArmorByRarity  = "/armors/rarity/{rarity}"
+
+	postWeapon = "/weapons"
+	postArmor  = "/armor"
+)
