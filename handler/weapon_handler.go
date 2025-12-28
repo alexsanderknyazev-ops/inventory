@@ -48,6 +48,7 @@ func GetWeaponByName(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetWeaponById(w http.ResponseWriter, r *http.Request) {
+
 	id, err := getParceId(r, "GetWeaponById - idStr = ")
 	if err != nil {
 		log.Println(errorLogParceInt)

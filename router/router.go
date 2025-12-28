@@ -17,8 +17,9 @@ const (
 	getArmorById         = "/armors/{id}"
 	getWeaponsById       = "/weapons/{id}"
 
-	postWeapon = "/weapons"
-	postArmor  = "/armors"
+	postWeapon     = "/weapons"
+	postArmor      = "/armors"
+	postBatchArmor = "/armors/batch"
 
 	deleteWeaponByName = "/weapons/name/{name}"
 	deleteArmorByName  = "/armors/name/{name}"
@@ -42,6 +43,7 @@ func Route() *chi.Mux {
 
 		r.Post(postWeapon, handler.CreateWeapon)
 		r.Post(postArmor, handler.CreateArmor)
+		r.Post(postBatchArmor, handler.CreateArmorBatch)
 
 		r.Delete(deleteWeaponByName, handler.DeleteWeaponByName)
 		r.Delete(deleteArmorByName, handler.DeleteArmorByName)

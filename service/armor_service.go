@@ -61,6 +61,36 @@ func CreateArmor(armor *modules.Armor) error {
 	return result.Error
 }
 
+func CreateArmorBatch(armors []modules.Armor) ([]modules.Armor, error) {
+	db := database.GetDB()
+	if db == nil {
+		return nil, nil
+	}
+
+	if len(armors) == 0 {
+		return nil, nil
+	}
+
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	result := tx.CreateInBatches(&armors, 100)
+	if result.Error != nil {
+		tx.Rollback()
+		return nil, result.Error
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	return armors, nil
+}
+
 func DeleteArmorById(id int64) error {
 	db := database.GetDB()
 	if db == nil {

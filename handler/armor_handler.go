@@ -82,6 +82,35 @@ func CreateArmor(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func CreateArmorBatch(w http.ResponseWriter, r *http.Request) {
+	var newArmors []modules.Armor
+	if err := json.NewDecoder(r.Body).Decode(&newArmors); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if len(newArmors) == 0 {
+		http.Error(w, "No armor data provided", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Creating %d armors in batch", len(newArmors))
+	_, err := service.CreateArmorBatch(newArmors)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Armors created successfully",
+		"count":   len(newArmors),
+		"armors":  newArmors,
+	})
+
+}
+
 func DeleteArmorById(w http.ResponseWriter, r *http.Request) {
 	id, err := getParceId(r, "DeleteArmorById - idStr = ")
 	if err != nil {
