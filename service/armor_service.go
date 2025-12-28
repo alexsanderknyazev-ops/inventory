@@ -60,3 +60,23 @@ func CreateArmor(armor *modules.Armor) error {
 
 	return result.Error
 }
+
+func DeleteArmorById(id int64) error {
+	db := database.GetDB()
+	if db == nil {
+		return nil
+	}
+	result := db.Delete(&modules.Armor{}, id)
+	return result.Error
+}
+
+func DeleteArmorByName(name string) error {
+	db := database.GetDB()
+	if db == nil {
+		return nil
+	}
+
+	result := db.Where(whereName, name).Delete(&modules.Armor{})
+
+	return result.Error
+}

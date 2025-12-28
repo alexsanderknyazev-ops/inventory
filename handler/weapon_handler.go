@@ -6,7 +6,6 @@ import (
 	"inventory/service"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -51,8 +50,7 @@ func GetWeaponByName(w http.ResponseWriter, r *http.Request) {
 
 func GetWeaponById(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, idRoute)
-	log.Println("GetWeaponById - idStr = ", idStr)
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := getParceId(idStr, "GetWeaponById - idStr = ")
 	if err != nil {
 		log.Println(errorLogParceInt)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -84,4 +82,29 @@ func CreateWeapon(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newWeapon)
 
+}
+
+func DeleteWeaponById(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, idRoute)
+	id, err := getParceId(idStr, "DeleteWeaponById - idStr = ")
+	if err != nil {
+		log.Println(errorLogParceInt)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = service.DeleteWeaponById(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func DeleteWeaponByName(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, nameRoute)
+
+	err := service.DeleteWeaponByName(name)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
