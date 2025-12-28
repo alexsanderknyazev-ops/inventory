@@ -15,6 +15,10 @@ func Route() *chi.Mux {
 		r.Get(getAllArmor, handler.GetAllArmor)
 		r.Get(getAllWeaponByRarity, handler.GetAllWeaponByRarity)
 		r.Get(getAllArmorByRarity, handler.GetAllArmorByRarity)
+		r.Get(getArmorByName, handler.GetArmorByName)
+		r.Get(getWeaponsByName, handler.GetWeaponByName)
+		r.Get(getArmorById, handler.GetArmorById)
+		r.Get(getWeaponsById, handler.GetWeaponById)
 
 		r.Post(postWeapon, handler.CreateWeapon)
 		r.Post(postArmor, handler.CreateArmor)
@@ -30,6 +34,12 @@ const (
 
 	getAllWeaponByRarity = "/weapons/rarity/{rarity}"
 	getAllArmorByRarity  = "/armors/rarity/{rarity}"
+
+	getArmorByName   = "/armors/name/{name}"
+	getWeaponsByName = "/weapons/name/{name}"
+
+	getArmorById   = "/armors/{id}"
+	getWeaponsById = "/weapons/{id}"
 
 	postWeapon = "/weapons"
 	postArmor  = "/armor"
