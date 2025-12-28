@@ -32,7 +32,6 @@ func GetAllWeaponByRarity(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetWeaponByName(w http.ResponseWriter, r *http.Request) {
-
 	name := chi.URLParam(r, nameRoute)
 	log.Println("GetWeaponByName - name = ", name)
 	result, err := service.GetWeaponByName(name)
@@ -49,8 +48,7 @@ func GetWeaponByName(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetWeaponById(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, idRoute)
-	id, err := getParceId(idStr, "GetWeaponById - idStr = ")
+	id, err := getParceId(r, "GetWeaponById - idStr = ")
 	if err != nil {
 		log.Println(errorLogParceInt)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -85,8 +83,8 @@ func CreateWeapon(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteWeaponById(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, idRoute)
-	id, err := getParceId(idStr, "DeleteWeaponById - idStr = ")
+	//idStr := chi.URLParam(r, idRoute)
+	id, err := getParceId(r, "DeleteWeaponById - idStr = ")
 	if err != nil {
 		log.Println(errorLogParceInt)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -101,7 +99,6 @@ func DeleteWeaponById(w http.ResponseWriter, r *http.Request) {
 
 func DeleteWeaponByName(w http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, nameRoute)
-
 	err := service.DeleteWeaponByName(name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

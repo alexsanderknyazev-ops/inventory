@@ -48,8 +48,7 @@ func GetArmorByName(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetArmorById(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, idRoute)
-	id, err := getParceId(idStr, "GetArmorById - idStr = ")
+	id, err := getParceId(r, "GetArmorById - idStr = ")
 	if err != nil {
 		log.Panicln(errorLogParceInt)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -84,8 +83,7 @@ func CreateArmor(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteArmorById(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, idRoute)
-	id, err := getParceId(idStr, "DeleteArmorById - idStr = ")
+	id, err := getParceId(r, "DeleteArmorById - idStr = ")
 	if err != nil {
 		log.Println(errorLogParceInt)
 		http.Error(w, err.Error(), http.StatusBadRequest)

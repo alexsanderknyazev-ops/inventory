@@ -2,7 +2,10 @@ package handler
 
 import (
 	"log"
+	"net/http"
 	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 const (
@@ -16,9 +19,10 @@ const (
 	errorLogParceInt = "Error - parse int"
 )
 
-func getParceId(str string, logs string) (int64, error) {
-	log.Println(logs, str)
-	id, err := strconv.ParseInt(str, 10, 64)
+func getParceId(r *http.Request, logs string) (int64, error) {
+	idStr := chi.URLParam(r, idRoute)
+	log.Println(logs, idStr)
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		return 0, err
 	}
