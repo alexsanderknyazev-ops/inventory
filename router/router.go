@@ -1,7 +1,7 @@
 package router
 
 import (
-	"inventory/handler"
+	"market/handler"
 
 	"github.com/go-chi/chi/v5"
 )

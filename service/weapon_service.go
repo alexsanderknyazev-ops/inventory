@@ -1,9 +1,9 @@
 package service
 
 import (
-	"inventory/database"
-	"inventory/modules"
 	"log"
+	"market/database"
+	"market/modules"
 )
 
 func GetAllWeapon() ([]modules.Weapon, error) {

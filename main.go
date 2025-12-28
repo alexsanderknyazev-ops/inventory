@@ -1,9 +1,9 @@
 package main
 
 import (
-	"inventory/database"
-	"inventory/router"
 	"log"
+	"market/database"
+	"market/router"
 	"net/http"
 )
 
