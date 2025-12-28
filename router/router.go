@@ -6,6 +6,26 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+const (
+	inventoryRoute       = "/inventory"
+	getAllWeapon         = "/weapons"
+	getAllArmor          = "/armors"
+	getAllWeaponByRarity = "/weapons/rarity/{rarity}"
+	getAllArmorByRarity  = "/armors/rarity/{rarity}"
+	getArmorByName       = "/armors/name/{name}"
+	getWeaponsByName     = "/weapons/name/{name}"
+	getArmorById         = "/armors/{id}"
+	getWeaponsById       = "/weapons/{id}"
+
+	postWeapon = "/weapons"
+	postArmor  = "/armors"
+
+	deleteWeaponByName = "/weapons/name/{name}"
+	deleteArmorByName  = "/armors/name/{name}"
+	deleteWeaponById   = "/weapons/{id}"
+	deleteArmorById    = "/armors/{id}"
+)
+
 func Route() *chi.Mux {
 
 	r := chi.NewRouter()
@@ -23,24 +43,10 @@ func Route() *chi.Mux {
 		r.Post(postWeapon, handler.CreateWeapon)
 		r.Post(postArmor, handler.CreateArmor)
 
+		r.Delete(deleteWeaponByName, handler.DeleteWeaponByName)
+		r.Delete(deleteArmorByName, handler.DeleteArmorByName)
+		r.Delete(deleteWeaponById, handler.DeleteWeaponById)
+		r.Delete(deleteArmorById, handler.DeleteArmorById)
 	})
 	return r
 }
-
-const (
-	inventoryRoute = "/inventory"
-	getAllWeapon   = "/weapons"
-	getAllArmor    = "/armors"
-
-	getAllWeaponByRarity = "/weapons/rarity/{rarity}"
-	getAllArmorByRarity  = "/armors/rarity/{rarity}"
-
-	getArmorByName   = "/armors/name/{name}"
-	getWeaponsByName = "/weapons/name/{name}"
-
-	getArmorById   = "/armors/{id}"
-	getWeaponsById = "/weapons/{id}"
-
-	postWeapon = "/weapons"
-	postArmor  = "/armor"
-)

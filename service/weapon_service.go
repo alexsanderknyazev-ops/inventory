@@ -56,3 +56,22 @@ func CreateWeapon(weapon *modules.Weapon) error {
 
 	return result.Error
 }
+
+func DeleteWeaponById(id int64) error {
+	db := database.GetDB()
+	if db == nil {
+		return nil
+	}
+	result := db.Delete(&modules.Weapon{}, id)
+	return result.Error
+}
+
+func DeleteWeaponByName(name string) error {
+	db := database.GetDB()
+	if db == nil {
+		return nil
+	}
+	result := db.Where(whereName, name).Delete(&modules.Weapon{})
+
+	return result.Error
+}

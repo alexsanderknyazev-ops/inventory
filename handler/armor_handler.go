@@ -6,13 +6,12 @@ import (
 	"inventory/service"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 )
 
 func GetAllArmor(w http.ResponseWriter, r *http.Request) {
-	result, err := service.GetAllWeapon()
+	result, err := service.GetAllArmor()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -50,8 +49,7 @@ func GetArmorByName(w http.ResponseWriter, r *http.Request) {
 
 func GetArmorById(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, idRoute)
-	log.Println("GetArmorById - idStr = ", idStr)
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := getParceId(idStr, "GetArmorById - idStr = ")
 	if err != nil {
 		log.Panicln(errorLogParceInt)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -83,4 +81,29 @@ func CreateArmor(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newArmor)
 
+}
+
+func DeleteArmorById(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, idRoute)
+	id, err := getParceId(idStr, "DeleteArmorById - idStr = ")
+	if err != nil {
+		log.Println(errorLogParceInt)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = service.DeleteArmorById(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func DeleteArmorByName(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, nameRoute)
+
+	err := service.DeleteArmorByName(name)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
