@@ -3,8 +3,8 @@ package database
 import (
 	"log"
 
-	"inventory/config"
-	"inventory/modules"
+	"market/config"
+	"market/modules"
 
 	"gorm.io/gorm"
 )

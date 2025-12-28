@@ -2,9 +2,9 @@ package handler
 
 import (
 	"encoding/json"
-	"inventory/modules"
-	"inventory/service"
 	"log"
+	"market/modules"
+	"market/service"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

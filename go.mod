@@ -1,4 +1,4 @@
-module inventory
+module market
 
 go 1.23.3
 
