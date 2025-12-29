@@ -16,7 +16,7 @@ func main() {
 	router := router.Route()
 	log.Println("main - Init Route")
 
-	port := "8071"
+	port := "8070"
 	server := &http.Server{
 		Addr:         ":" + port,
 		Handler:      router,

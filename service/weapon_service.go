@@ -42,6 +42,7 @@ func GetWeaponByName(name string) (modules.Weapon, error) {
 	db := database.GetDB()
 	var weapon modules.Weapon
 	result := db.Where(whereName, name).Find(&weapon)
+	db.Update("populeite", weapon)
 	log.Println("GetWeaponByName - Weapon Name = ", weapon.Name)
 	return weapon, result.Error
 }

@@ -46,8 +46,8 @@ func GetArmorByName(name string) (modules.Armor, error) {
 	db := database.GetDB()
 
 	var armor modules.Armor
-
 	result := db.Where(whereName, name).Find(&armor)
+	
 	log.Println("GetArmorByName - Armor Name = ", armor.Name)
 	return armor, result.Error
 }
