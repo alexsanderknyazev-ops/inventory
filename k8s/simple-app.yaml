@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: market-app
+  namespace: market
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: market-app
+  template:
+    metadata:
+      labels:
+        app: market-app
+    spec:
+      containers:
+      - name: market-app
+        image: market-app:latest
+        ports:
+        - containerPort: 8070
+        env:
+        - name: DB_HOST
+          value: "postgres.market.svc.cluster.local"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          value: "admin"
+        - name: DB_PASSWORD
+          value: "admin123"
+        - name: DB_NAME
+          value: "marketdb"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: market-app
+  namespace: market
+spec:
+  selector:
+    app: market-app
+  ports:
+  - port: 8070
+    targetPort: 8070
+  type: ClusterIP

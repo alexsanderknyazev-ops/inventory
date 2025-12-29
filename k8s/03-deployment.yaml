@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: market-deployment
+  namespace: market
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: market
+  template:
+    metadata:
+      labels:
+        app: market
+    spec:
+      containers:
+      - name: market-app
+        image: market-app:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8070
+        env:
+        # Из ConfigMap
+        - name: APP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: APP_PORT
+        - name: APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: APP_ENV
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: LOG_LEVEL
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: DB_NAME
+        - name: DB_SSLMODE
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: DB_SSLMODE
+        - name: GIN_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: GIN_MODE
+        - name: READ_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: READ_TIMEOUT
+        - name: WRITE_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: WRITE_TIMEOUT
+        - name: DB_AUTO_MIGRATE
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: DB_AUTO_MIGRATE
+        - name: DB_MAX_CONNECTIONS
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: DB_MAX_CONNECTIONS
+        - name: DB_MAX_IDLE_CONNECTIONS
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: DB_MAX_IDLE_CONNECTIONS
+        # Из ConfigMap (открытые данные)
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: market-config
+              key: DB_USER
+        # Из Secret (защищенные данные)
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: market-secrets
+              key: DB_PASSWORD
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: market-secrets
+              key: JWT_SECRET
+        - name: API_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: market-secrets
+              key: API_SECRET_KEY
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /inventory/health
+            port: 8070
+          initialDelaySeconds: 45  # Даем больше времени для старта
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /inventory/health
+            port: 8070
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        startupProbe:  # Дополнительно для медленно стартующих приложений
+          httpGet:
+            path: /inventory/health
+            port: 8070
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30  # 5 минут максимального времени старта
+        # Жизненный цикл
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 10"]  # Graceful shutdown

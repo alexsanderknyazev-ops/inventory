@@ -2,6 +2,8 @@ package router
 
 import (
 	"market/handler"
+	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -49,6 +51,13 @@ func Route() *chi.Mux {
 		r.Delete(deleteArmorByName, handler.DeleteArmorByName)
 		r.Delete(deleteWeaponById, handler.DeleteWeaponById)
 		r.Delete(deleteArmorById, handler.DeleteArmorById)
+		r.Get("/health", healthCheck)
 	})
 	return r
+}
+
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status": "ok", "timestamp": "` + time.Now().Format(time.RFC3339) + `"}`))
 }

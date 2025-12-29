@@ -108,7 +108,6 @@ func CreateArmorBatch(w http.ResponseWriter, r *http.Request) {
 		"count":   len(newArmors),
 		"armors":  newArmors,
 	})
-
 }
 
 func DeleteArmorById(w http.ResponseWriter, r *http.Request) {

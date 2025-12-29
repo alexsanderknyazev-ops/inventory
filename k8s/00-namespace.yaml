@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: market
+  labels:
+    name: market
+    environment: production
+    managed-by: kubectl

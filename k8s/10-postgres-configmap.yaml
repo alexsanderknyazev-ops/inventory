@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: market
+  labels:
+    app: postgres
+data:
+  POSTGRES_DB: "marketdb"
+  POSTGRES_USER: "marketuser"
+  POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+  # Конфигурация PostgreSQL
+  POSTGRES_SHARED_BUFFERS: "256MB"
+  POSTGRES_EFFECTIVE_CACHE_SIZE: "1GB"
+  POSTGRES_WORK_MEM: "8MB"
+  POSTGRES_MAINTENANCE_WORK_MEM: "64MB"

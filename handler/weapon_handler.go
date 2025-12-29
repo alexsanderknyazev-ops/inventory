@@ -83,8 +83,36 @@ func CreateWeapon(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func CreateWeaponBatch(w http.ResponseWriter, r *http.Request) {
+	var newWeapons []modules.Weapon
+
+	if err := json.NewDecoder(r.Body).Decode(&newWeapons); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if len(newWeapons) == 0 {
+		http.Error(w, "No armor data provided", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Creating %d armors in batch", len(newWeapons))
+	_, err := service.CreateWeaponBatch(newWeapons)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Armors created successfully",
+		"count":   len(newWeapons),
+		"armors":  newWeapons,
+	})
+}
+
 func DeleteWeaponById(w http.ResponseWriter, r *http.Request) {
-	//idStr := chi.URLParam(r, idRoute)
 	id, err := getParceId(r, "DeleteWeaponById - idStr = ")
 	if err != nil {
 		log.Println(errorLogParceInt)

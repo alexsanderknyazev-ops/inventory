@@ -57,6 +57,36 @@ func CreateWeapon(weapon *modules.Weapon) error {
 	return result.Error
 }
 
+func CreateWeaponBatch(weapons []modules.Weapon) ([]modules.Weapon, error) {
+	db := database.GetDB()
+	if db == nil {
+		return nil, nil
+	}
+
+	if len(weapons) == 0 {
+		return nil, nil
+	}
+
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	result := tx.CreateInBatches(&weapons, 100)
+	if result.Error != nil {
+		tx.Rollback()
+		return nil, result.Error
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	return weapons, nil
+}
+
 func DeleteWeaponById(id int64) error {
 	db := database.GetDB()
 	if db == nil {

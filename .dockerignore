@@ -1,0 +1,12 @@
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+README.md
+*.log
+bin/
+vendor/
+.env
+*.local
+k8s/
+.docker/

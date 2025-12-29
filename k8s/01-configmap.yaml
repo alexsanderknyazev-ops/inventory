@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: market-config
+  namespace: market
+data:
+  APP_PORT: "8070"
+  APP_ENV: "development"
+  LOG_LEVEL: "debug"
+  DB_HOST: "postgres.market.svc.cluster.local"  # ← Это важно!
+  DB_PORT: "5432"
+  DB_NAME: "marketdb"  # ← Должно совпадать с POSTGRES_DB в PostgreSQL
+  DB_USER: "admin"
+  DB_SSLMODE: "disable"
+  GIN_MODE: "debug"
+  READ_TIMEOUT: "30"
+  WRITE_TIMEOUT: "30"
+  DB_AUTO_MIGRATE: "true"
+  DB_MAX_CONNECTIONS: "20"
+  DB_MAX_IDLE_CONNECTIONS: "10"
