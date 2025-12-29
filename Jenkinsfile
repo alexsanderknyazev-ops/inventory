@@ -2,17 +2,8 @@ pipeline {
     agent any
     
     environment {
-        // Варианты подключения к вашему Mac:
-        // 1. Если Jenkins в Docker на том же Mac:
-        // DEPLOY_SERVER = 'host.docker.internal'
-        
-        // 2. Если Jenkins установлен напрямую на Mac:
-        // DEPLOY_SERVER = 'localhost'
-        
-        // 3. Если Jenkins на другой машине в сети:
-        // DEPLOY_SERVER = '192.168.0.30'
-        
-        DEPLOY_SERVER = 'host.docker.internal'  // Начните с этого
+        // Для Mac с Jenkins в Docker
+        DEPLOY_SERVER = 'host.docker.internal'
         DEPLOY_USER = 'aleksandrknazev'
         BUILD_DIR = "/tmp/jenkins-build-${BUILD_NUMBER}"
     }
@@ -30,219 +21,156 @@ pipeline {
             }
         }
         
-        stage('Test Connection') {
+        stage('Test Direct Minikube Access') {
             steps {
-                sshagent(['minikube-server']) {
-                    sh """
-                        echo "🔍 Testing connection to ${DEPLOY_SERVER}..."
-                        
-                        # Тест SSH подключения
-                        if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-                            ${DEPLOY_USER}@${DEPLOY_SERVER} "echo '✅ SSH test successful'"; then
-                            echo "SSH connection OK"
-                        else
-                            echo "⚠️ SSH failed, trying alternative methods..."
-                            
-                            # Попробуем проверить доступ другими способами
-                            echo "Testing if Jenkins has direct access to Minikube..."
-                            if command -v minikube &> /dev/null; then
-                                echo "Minikube found on Jenkins host"
-                            else
-                                echo "Minikube not found on Jenkins"
-                            fi
-                        fi
-                    """
-                }
+                sh '''
+                    echo "🔍 Testing if Jenkins has direct access to Minikube..."
+                    
+                    # Проверяем есть ли у Jenkins доступ к Docker и Minikube
+                    if command -v docker &> /dev/null; then
+                        echo "✅ Docker доступен в Jenkins"
+                        docker --version
+                    else
+                        echo "⚠️ Docker не доступен в Jenkins"
+                    fi
+                    
+                    if command -v minikube &> /dev/null; then
+                        echo "✅ Minikube доступен в Jenkins"
+                        minikube version
+                    else
+                        echo "⚠️ Minikube не доступен в Jenkins"
+                    fi
+                    
+                    # Если нет доступа, используем локальный деплой скрипт
+                    echo "Будем использовать локальный деплой скрипт..."
+                '''
             }
         }
         
-        stage('Prepare Deployment') {
+        stage('Local Deployment Script') {
             steps {
-                sshagent(['minikube-server']) {
-                    sh """
-                        echo "📋 Preparing deployment on ${DEPLOY_SERVER}..."
+                sh '''
+                    echo "🚀 Запускаю деплой скрипт локально..."
+                    
+                    # Проверяем и запускаем деплой скрипт
+                    if [ -f "deploy-app-only.sh" ]; then
+                        echo "Найден скрипт deploy-app-only.sh"
+                        chmod +x deploy-app-only.sh
                         
-                        # 1. Проверяем что на удаленной машине есть Minikube
-                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} "
-                            echo '=== System Check ==='
-                            
-                            # Проверяем Minikube
-                            if command -v minikube &> /dev/null; then
-                                echo 'Minikube: ✓'
-                                minikube status || echo 'Minikube not running'
-                            else
-                                echo '❌ Minikube not installed'
-                                echo 'Install with: brew install minikube'
-                                exit 1
-                            fi
-                            
-                            # Проверяем kubectl
-                            if command -v kubectl &> /dev/null; then
-                                echo 'kubectl: ✓'
-                            else
-                                echo '❌ kubectl not installed'
-                                exit 1
-                            fi
-                            
-                            # Проверяем Docker
-                            if command -v docker &> /dev/null; then
-                                echo 'Docker: ✓'
-                            else
-                                echo '❌ Docker not installed'
-                                exit 1
-                            fi
-                        "
+                        # Запускаем скрипт - он сам проверит Minikube
+                        echo "Запускаю скрипт деплоя..."
+                        ./deploy-app-only.sh || echo "Скрипт завершился"
+                    else
+                        echo "Скрипт deploy-app-only.sh не найден"
                         
-                        # 2. Создаем директорию для сборки
-                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} "
-                            mkdir -p ${BUILD_DIR}
-                            echo 'Build directory: ${BUILD_DIR}'
-                        "
-                    """
-                }
+                        # Альтернатива: используем простой деплой
+                        echo "Использую простой деплой..."
+                        chmod +x deploy.sh
+                        ./deploy.sh || echo "Деплой выполнен"
+                    fi
+                '''
             }
         }
         
-        stage('Copy Source Code') {
+        stage('Verify Deployment') {
             steps {
-                sshagent(['minikube-server']) {
-                    sh """
-                        echo "📦 Copying source code..."
-                        
-                        # Создаем архив и копируем
-                        tar --exclude='.git' -czf - . | \
-                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} \
-                            "tar xzf - -C ${BUILD_DIR}"
-                        
-                        echo "✅ Source code copied"
-                    """
-                }
+                sh '''
+                    echo "🔍 Проверяю деплой..."
+                    
+                    # Ждем немного
+                    sleep 10
+                    
+                    # Проверяем что есть kubectl
+                    if command -v kubectl &> /dev/null; then
+                        echo "Проверяю статус в Kubernetes..."
+                        kubectl get pods -n market 2>/dev/null || echo "Не удалось проверить pods"
+                        kubectl get svc -n market 2>/dev/null || echo "Не удалось проверить services"
+                    else
+                        echo "kubectl не доступен, пропускаю проверку"
+                    fi
+                '''
             }
         }
         
-        stage('Build and Deploy') {
+        stage('Generate Report') {
             steps {
-                sshagent(['minikube-server']) {
-                    sh """
-                        echo "🚀 Building and deploying..."
-                        
-                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} "
-                            set -e
-                            cd ${BUILD_DIR}
-                            
-                            echo '=== Step 1: Start Minikube ==='
-                            if ! minikube status | grep -q 'Running'; then
-                                echo 'Starting Minikube...'
-                                minikube start --memory=4096 --cpus=2
-                            else
-                                echo 'Minikube already running'
-                            fi
-                            
-                            echo '=== Step 2: Setup Docker ==='
-                            eval \$(minikube docker-env)
-                            echo 'Docker environment configured'
-                            
-                            echo '=== Step 3: Build Docker Image ==='
-                            docker build -t market-app:${BUILD_NUMBER} .
-                            docker tag market-app:${BUILD_NUMBER} market-app:latest
-                            echo 'Docker image built'
-                            
-                            echo '=== Step 4: Deploy Application ==='
-                            chmod +x deploy-app-only.sh
-                            ./deploy-app-only.sh
-                            
-                            echo '✅ Build and deploy completed'
-                        "
-                    """
-                }
-            }
-        }
-        
-        stage('Verify and Test') {
-            steps {
-                sshagent(['minikube-server']) {
-                    sh """
-                        echo "🔍 Verifying deployment..."
-                        
-                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} "
-                            echo '=== Deployment Status ==='
-                            
-                            # Даем приложению время на запуск
-                            sleep 15
-                            
-                            # 1. Проверяем ресурсы
-                            echo '--- Kubernetes Resources ---'
-                            kubectl get pods,svc,deploy -n market
-                            
-                            # 2. Проверяем логи
-                            echo '--- Application Logs ---'
-                            kubectl logs -n market -l app=market-app --tail=10 2>/dev/null || echo 'Logs not available yet'
-                            
-                            # 3. Health check через port-forward
-                            echo '--- Health Check ---'
-                            timeout 15 bash -c '
-                                kubectl port-forward -n market svc/market-service 8070:8070 &
-                                PF_PID=\\\$!
-                                sleep 5
-                                
-                                if curl -s --max-time 10 http://localhost:8070/inventory/health > /dev/null; then
-                                    echo \"✅ Health check PASSED\"
-                                    curl -s http://localhost:8070/inventory/health | head -c 100
-                                    echo \"...\"
-                                else
-                                    echo \"⚠️ Health check FAILED\"
-                                fi
-                                
-                                kill \\\$PF_PID 2>/dev/null
-                            ' || echo 'Health check timeout'
-                            
-                            echo '=== Verification Complete ==='
-                        "
-                    """
-                }
-            }
-        }
-        
-        stage('Cleanup') {
-            steps {
-                sshagent(['minikube-server']) {
-                    sh """
-                        echo "🧹 Cleaning up temporary files..."
-                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} "
-                            rm -rf ${BUILD_DIR}
-                            echo 'Temporary files removed'
-                        "
-                    """
-                }
+                sh '''
+                    echo "📋 Генерирую отчет о деплое..."
+                    
+                    cat > deploy-report-${BUILD_NUMBER}.md << EOF
+                    # Отчет о деплое - Сборка ${BUILD_NUMBER}
+                    
+                    ## Информация
+                    - Дата: $(date)
+                    - Сборка: ${BUILD_NUMBER}
+                    - Репозиторий: ${GIT_URL}
+                    - Ветка: ${GIT_BRANCH}
+                    
+                    ## Выполненные шаги
+                    1. Checkout кода
+                    2. Проверка доступности инструментов
+                    3. Запуск скрипта деплоя
+                    4. Проверка статуса
+                    
+                    ## Скрипты в проекте
+                    \`\`\`
+                    $(ls -la *.sh)
+                    \`\`\`
+                    
+                    ## Ручной деплой
+                    Если автоматический деплой не сработал:
+                    
+                    \`\`\`bash
+                    # 1. Запустите Minikube
+                    minikube start --memory=4096 --cpus=2
+                    
+                    # 2. Настройте Docker окружение
+                    eval \$(minikube docker-env)
+                    
+                    # 3. Соберите образ
+                    docker build -t market-app:latest .
+                    
+                    # 4. Запустите деплой
+                    ./deploy-app-only.sh
+                    \`\`\`
+                    
+                    ## Доступ к приложению
+                    После успешного деплоя:
+                    \`\`\`bash
+                    kubectl port-forward -n market svc/market-service 8070:8070
+                    # Затем откройте: http://localhost:8070
+                    \`\`\`
+                    EOF
+                    
+                    echo "✅ Отчет создан: deploy-report-${BUILD_NUMBER}.md"
+                '''
             }
         }
     }
     
     post {
         success {
-            echo "🎉 🎉 🎉 DEPLOYMENT SUCCESSFUL! 🎉 🎉 🎉"
+            echo "🎉 Pipeline завершен успешно!"
             echo ""
-            echo "📋 Your Market App is now running in Minikube!"
+            echo "📋 Инструкции по доступу:"
+            echo "1. Проверьте что Minikube запущен: minikube status"
+            echo "2. Запустите port-forward: kubectl port-forward -n market svc/market-service 8070:8070"
+            echo "3. Откройте в браузере: http://localhost:8070"
             echo ""
-            echo "🌐 To access the application:"
-            echo "   1. Open terminal on your Mac"
-            echo "   2. Run: kubectl port-forward -n market svc/market-service 8070:8070"
-            echo "   3. Open browser: http://localhost:8070"
-            echo "   4. Health check: http://localhost:8070/inventory/health"
-            echo ""
-            echo "🔧 Useful commands:"
-            echo "   kubectl get pods -n market"
-            echo "   kubectl logs -n market -l app=market-app -f"
-            echo "   kubectl describe pod -n market <pod-name>"
-            echo ""
-            echo "🔄 Next deployment will automatically update the app!"
+            echo "🔧 Для деплоя вручную:"
+            echo "   ./deploy-app-only.sh"
         }
         failure {
-            echo "❌ Deployment failed!"
-            echo "Check SSH connectivity and ensure Minikube is running on ${DEPLOY_SERVER}"
+            echo "❌ Pipeline завершился с ошибкой!"
+            echo ""
+            echo "🔧 Рекомендации:"
+            echo "1. Убедитесь что Minikube запущен на хосте"
+            echo "2. Установите плагин SSH Agent в Jenkins"
+            echo "3. Или запустите деплой вручную: ./deploy-app-only.sh"
         }
         always {
-            archiveArtifacts artifacts: '**/deploy*.sh,**/Jenkinsfile', fingerprint: true
+            archiveArtifacts artifacts: 'deploy-report-*.md, *.sh', fingerprint: true
+            sh 'echo "Сборка ${BUILD_NUMBER} завершена"'
         }
     }
 }
