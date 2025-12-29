@@ -4,6 +4,8 @@ import (
 	"log"
 	"market/database"
 	"market/modules"
+
+	"gorm.io/gorm"
 )
 
 func GetAllArmor() ([]modules.Armor, error) {
@@ -23,11 +25,11 @@ func GetAllArmorByRarity(rarity string) ([]modules.Weapon, error) {
 	if db == nil {
 		return nil, nil
 	}
-	var weapons []modules.Weapon
+	var armors []modules.Weapon
 
-	result := db.Where(whereRarity, rarity).Find(&weapons)
-	log.Println("All Armor - ", len(weapons), " by rarity - ", rarity)
-	return weapons, result.Error
+	result := db.Where(whereRarity, rarity).Find(&armors)
+	log.Println("All Armor - ", len(armors), " by rarity - ", rarity)
+	return armors, result.Error
 }
 
 func GetArmorById(id int64) (modules.Armor, error) {
@@ -44,10 +46,30 @@ func GetArmorByName(name string) (modules.Armor, error) {
 	db := database.GetDB()
 
 	var armor modules.Armor
-
 	result := db.Where(whereName, name).Find(&armor)
+	
 	log.Println("GetArmorByName - Armor Name = ", armor.Name)
 	return armor, result.Error
+}
+
+func GetArmorByPrice(price float64, is bool) ([]modules.Armor, error) {
+	db := database.GetDB()
+	if db == nil {
+		return nil, nil
+	}
+	var armors []modules.Armor
+	var res *gorm.DB
+	if is {
+		res = db.Where("price > ?", price).Find(&armors)
+	} else {
+		res = db.Where("price < ?", price).Find(&armors)
+	}
+
+	result := res.
+		Order("price DESC").
+		Find(&armors)
+
+	return armors, result.Error
 }
 
 func CreateArmor(armor *modules.Armor) error {

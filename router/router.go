@@ -18,6 +18,7 @@ const (
 	getWeaponsByName     = "/weapons/name/{name}"
 	getArmorById         = "/armors/{id}"
 	getWeaponsById       = "/weapons/{id}"
+	GetArmorByPrice      = "/armors/price/{price}/{bool}"
 
 	postWeapon     = "/weapons"
 	postArmor      = "/armors"
@@ -42,6 +43,7 @@ func Route() *chi.Mux {
 		r.Get(getWeaponsByName, handler.GetWeaponByName)
 		r.Get(getArmorById, handler.GetArmorById)
 		r.Get(getWeaponsById, handler.GetWeaponById)
+		r.Get(GetArmorByPrice, handler.GetArmorByPrice)
 
 		r.Post(postWeapon, handler.CreateWeapon)
 		r.Post(postArmor, handler.CreateArmor)

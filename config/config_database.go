@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"gorm.io/driver/postgres"
@@ -20,21 +21,13 @@ type DBConfig struct {
 
 func LoadDBConfig() DBConfig {
 	return DBConfig{
-		Host:     getEnv("DB_HOST", "postgres.market.svc.cluster.local"),
-		Port:     getEnv("DB_PORT", "5432"),
+		Host:     getEnv("DB_HOST", "localhost"),
+		Port:     getEnv("DB_PORT", "5440"),
 		User:     getEnv("DB_USER", "admin"),
 		Password: getEnv("DB_PASSWORD", "admin123"),
 		DBName:   getEnv("DB_NAME", "marketdb"),
 		SSLMode:  getEnv("DB_SSLMODE", "disable"),
 	}
-	// return DBConfig{
-	// 	Host:     getEnv("DB_HOST", "localhost"),
-	// 	Port:     getEnv("DB_PORT", "5434"),
-	// 	User:     getEnv("DB_USER", "admin"),
-	// 	Password: getEnv("DB_PASSWORD", "admin123"),
-	// 	DBName:   getEnv("DB_NAME", "db3"),
-	// 	SSLMode:  getEnv("DB_SSLMODE", "disable"),
-	// }
 }
 
 func getEnv(key, defaultValue string) string {
@@ -58,6 +51,8 @@ func ConnectDB(config DBConfig) (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
-
+	log.Printf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		config.Host, config.Port, config.User, config.Password,
+		config.DBName, config.SSLMode)
 	return db, nil
 }

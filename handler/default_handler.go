@@ -15,6 +15,8 @@ const (
 	rarityRoute = "rarity"
 	nameRoute   = "name"
 	idRoute     = "id"
+	priceRoute  = "price"
+	boolPrice   = "bool"
 
 	errorLogParceInt = "Error - parse int"
 )

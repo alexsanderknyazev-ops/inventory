@@ -6,6 +6,7 @@ import (
 	"market/modules"
 	"market/service"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -62,7 +63,26 @@ func GetArmorById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(defaultContentTypeHeader, defaultApplicationTypeHeader)
 	json.NewEncoder(w).Encode(result)
 }
+func GetArmorByPrice(w http.ResponseWriter, r *http.Request) {
 
+	priceStr := chi.URLParam(r, "price")
+	log.Printf("Raw price string: '%s'", priceStr)
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		log.Printf("ParseFloat error: %v", err)
+		log.Printf("Trying to parse '%s'", priceStr)
+	}
+	isStr := chi.URLParam(r, boolPrice)
+	is, err := strconv.ParseBool(isStr)
+	log.Println(is)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	result, err := service.GetArmorByPrice(price, is)
+	w.Header().Set(defaultContentTypeHeader, defaultApplicationTypeHeader)
+	json.NewEncoder(w).Encode(result)
+}
 func CreateArmor(w http.ResponseWriter, r *http.Request) {
 	var newArmor modules.Armor
 	if err := json.NewDecoder(r.Body).Decode(&newArmor); err != nil {
