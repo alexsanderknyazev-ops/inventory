@@ -44,6 +44,9 @@ func GetWeaponByName(name string) (modules.Weapon, error) {
 	result := db.Where(whereName, name).Find(&weapon)
 	db.Update("populeite", weapon)
 	log.Println("GetWeaponByName - Weapon Name = ", weapon.Name)
+	if weapon.Name != "" {
+		sendToKafkaDirectly(weapon.Name)
+	}
 	return weapon, result.Error
 }
 

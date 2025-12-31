@@ -1,0 +1,5 @@
+kubectl port-forward svc/kafka-ui 8090:8080 -n market
+
+kubectl port-forward pod/postgres-d8dbff754-sgm2d 5440:5432 -n market
+
+kubectl port-forward svc/kafka-service 9092:9092 -n market

@@ -5,6 +5,8 @@ import (
 	"market/database"
 	"market/modules"
 
+	"github.com/IBM/sarama"
+
 	"gorm.io/gorm"
 )
 
@@ -44,12 +46,54 @@ func GetArmorById(id int64) (modules.Armor, error) {
 
 func GetArmorByName(name string) (modules.Armor, error) {
 	db := database.GetDB()
-
 	var armor modules.Armor
-	result := db.Where(whereName, name).Find(&armor)
-	
-	log.Println("GetArmorByName - Armor Name = ", armor.Name)
-	return armor, result.Error
+
+	result := db.Where("name = ?", name).First(&armor)
+	if result.Error != nil {
+		log.Printf("GetArmorByName - Error finding armor '%s': %v", name, result.Error)
+		return armor, result.Error
+	}
+
+	log.Println("GetArmorByName - Found Armor Name = ", armor.Name)
+
+	if armor.Name != "" {
+		sendToKafkaDirectly(armor.Name)
+	}
+
+	return armor, nil
+}
+
+func sendToKafkaDirectly(message string) error {
+	log.Printf("Sending to Kafka: %s", message)
+
+	brokers := []string{"kafka-service:9092"}
+	topic := "market-events"
+
+	cfg := sarama.NewConfig()
+	cfg.Producer.Return.Successes = true
+	cfg.Producer.RequiredAcks = sarama.WaitForAll
+	cfg.Producer.Retry.Max = 3
+
+	producer, err := sarama.NewSyncProducer(brokers, cfg)
+	if err != nil {
+		log.Printf("Failed to create Kafka producer: %v", err)
+		return err
+	}
+	defer producer.Close()
+
+	msg := &sarama.ProducerMessage{
+		Topic: topic,
+		Value: sarama.StringEncoder(message),
+	}
+
+	partition, offset, err := producer.SendMessage(msg)
+	if err != nil {
+		log.Printf("Kafka send failed: %v", err)
+		return err
+	}
+
+	log.Printf("Kafka send successful: partition=%d, offset=%d", partition, offset)
+	return nil
 }
 
 func GetArmorByPrice(price float64, is bool) ([]modules.Armor, error) {
