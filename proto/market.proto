@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package inventory;
+option go_package = "market/proto";
+
+import "google/protobuf/timestamp.proto";
+
+message Weapon {
+    uint64 id = 1;
+    string name = 2;
+    string weapon_type = 3;
+    uint64 damage_min = 4;
+    uint64 damage_max = 5;
+    double weight = 6;
+    uint64 price = 7;
+    string rarity = 8;
+    string special_effect = 9;
+    google.protobuf.Timestamp created_at = 10;
+}
+
+message Armor {
+    uint64 id = 1;
+    string name = 2;
+    string armor_type = 3;
+    uint64 defense = 4;
+    double weight = 5;
+    uint64 price = 6;
+    string rarity = 7;
+    string special_effect = 8;
+    google.protobuf.Timestamp created_at = 9;
+}
+
+message GetWeaponByNameRequest {
+    string name = 1;
+}
+
+message GetWeaponByNameResponse {
+    Weapon weapon = 1;
+}
+
+message GetArmorByNameRequest {
+    string name = 1;
+}
+
+message GetArmorByNameResponse {
+    Armor armor = 1;
+}
+
+service MarketService {
+    rpc GetWeaponByName(GetWeaponByNameRequest) returns (GetWeaponByNameResponse);
+    rpc GetArmorByName(GetArmorByNameRequest) returns (GetArmorByNameResponse);
+}
